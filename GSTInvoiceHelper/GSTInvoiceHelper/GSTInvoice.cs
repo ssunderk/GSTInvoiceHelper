@@ -17,20 +17,18 @@ namespace GSTInvoiceHelper
 
     public class TranDtls
     {
-        [JsonPropertyName("Catg")]
-        public string Catg { get; set; }
+        [JsonPropertyName("taxSch")]
+        public string TaxSch { get; set; }
 
-        [JsonPropertyName("RegRev")]
+        [JsonPropertyName("supTyp")]
+        public string SupTyp { get; set; }
+
+        [JsonPropertyName("regRev")]
         public string RegRev { get; set; }
 
-        [JsonPropertyName("Typ")]
-        public string Typ { get; set; }
+        [JsonPropertyName("igstOnIntra")]
+        public string IgstOnIntra { get; set; }
 
-        [JsonPropertyName("EcmTrn")]
-        public string EcmTrn { get; set; }
-
-        [JsonPropertyName("EcmGstin")]
-        public string EcmGstin { get; set; }
     }
 
     public class DocDtls
@@ -52,6 +50,9 @@ namespace GSTInvoiceHelper
 
         [JsonPropertyName("TrdNm")]
         public string TrdNm { get; set; }
+
+        [JsonPropertyName("lglNm")]
+        public string LglNm { get; set; }
 
         [JsonPropertyName("Bno")]
         public string Bno { get; set; }
@@ -83,11 +84,20 @@ namespace GSTInvoiceHelper
 
     public class BuyerDtls
     {
-        [JsonPropertyName("Gstin")]
+        [JsonPropertyName("gstin")]
         public string Gstin { get; set; }
 
-        [JsonPropertyName("TrdNm")]
+        [JsonPropertyName("trdNm")]
         public string TrdNm { get; set; }
+
+        [JsonPropertyName("lglNm")]
+        public string LglNm { get; set; }
+        
+        [JsonPropertyName("addr1")]
+        public string Addr1 { get; set; }
+
+        [JsonPropertyName("addr2")]
+        public string Addr2 { get; set; }
 
         [JsonPropertyName("Bno")]
         public string Bno { get; set; }
@@ -115,6 +125,9 @@ namespace GSTInvoiceHelper
 
         [JsonPropertyName("Em")]
         public string Em { get; set; }
+
+        [JsonPropertyName("pos")]
+        public string Pos { get; set; }
     }
 
     public class ValDtls
@@ -164,12 +177,19 @@ namespace GSTInvoiceHelper
 
     public class ItemList
     {
+        
+        [JsonPropertyName("slNo")]
+        public string SlNo { get; set; }
+
         [JsonPropertyName("PrdNm")]
         public string PrdNm { get; set; }
 
         [JsonPropertyName("PrdDesc")]
         public string PrdDesc { get; set; }
 
+        [JsonPropertyName("isServc")]
+        public string IsServc { get; set; }
+        
         [JsonPropertyName("HsnCd")]
         public string HsnCd { get; set; }
 
@@ -202,6 +222,9 @@ namespace GSTInvoiceHelper
 
         [JsonPropertyName("SgstRt")]
         public int SgstRt { get; set; }
+
+        [JsonPropertyName("gstRt")]
+        public int GstRt { get; set; }
 
         [JsonPropertyName("CgstRt")]
         public int CgstRt { get; set; }
