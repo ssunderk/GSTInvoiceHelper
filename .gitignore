@@ -1,0 +1,8 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/GSTInvoiceHelper/.vs/GSTInvoiceHelper/v16/.suo
+/GSTInvoiceHelper/.vs/GSTInvoiceHelper/config
+/GSTInvoiceHelper/GSTInvoiceHelper/bin/Debug/netcoreapp3.1
+/GSTInvoiceHelper/GSTInvoiceHelper/obj
