@@ -2,7 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Linq;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 
 namespace GSTInvoiceHelper
 {
@@ -10,10 +12,26 @@ namespace GSTInvoiceHelper
     {
             static void Main(string[] args)
             {
+                string action = GetParamValue(args, "action", true);
+                string vendortoken = GetParamValue(args, "vendortoken", false);
+                string einvoicetoken = GetParamValue(args, "einvoicetoken", false);
 
-                var token = getToken();
-                var authToken = Authenticate(token);
-                Console.ReadLine();
+                Token token = null;
+                Token einvoiceToken = null;
+                token = new Token() { access_token = vendortoken };
+                einvoiceToken = new Token() { access_token = einvoicetoken };
+                if (action.ToLower().Contains("getgstvendortoken") || action.ToLower().Contains("getbothtokens"))
+                {
+                    token = getToken();
+                    Console.WriteLine("Token:" + token.ToString());
+                }
+
+                if (action.ToLower().Contains("geteinvoicetoken") || action.ToLower().Contains("getbothtokens"))
+                {
+                    einvoiceToken = Authenticate(token);
+                    Console.WriteLine("Einvoice Token:" + einvoiceToken.access_token.ToString()); 
+                }
+            
 
             }
 
@@ -73,14 +91,14 @@ namespace GSTInvoiceHelper
                         password = ConfigurationManager.AppSettings["EinvoiceAuthPassword"] //"p3r3nn!@1",
                     };
 
-                    string vendorAccesstokenUrl = ConfigurationManager.AppSettings["EinvoiceAuthenticateUrl"];
-                    var req = new HttpRequestMessage(HttpMethod.Post, vendorAccesstokenUrl);// "https://35.154.208.8/einvoice/v1.03/authentication");
+                    string einvoicAuthUrl = ConfigurationManager.AppSettings["EinvoiceAuthenticateUrl"];
+                    var req = new HttpRequestMessage(HttpMethod.Post, einvoicAuthUrl);// "https://35.154.208.8/einvoice/v1.03/authentication");
 
                     req.Content = new StringContent(JsonConvert.SerializeObject(authRequest));
 
                     req.Headers.Add("Authorization", "Bearer " + token.access_token);
-                    req.Headers.Add("gstin", "29AFQPB8708K000");
-                    req.Headers.Add("action", "ACCESSTOKEN");
+                    req.Headers.Add("gstin", ConfigurationManager.AppSettings["GSTIN"]); // "29AFQPB8708K000");
+                    req.Headers.Add("action", ConfigurationManager.AppSettings["EinvoiceAuthAction"]);// ACCESSTOKEN");
                     var responseTask = client.SendAsync(req);
                     responseTask.Wait();
                     var result = responseTask.Result;
@@ -107,7 +125,31 @@ namespace GSTInvoiceHelper
                 }
 
             }
-        
 
+        /// Gets the parameter value.
+        /// </summary>
+        /// <param name="args">The arguments.</param>
+        /// <param name="paramName">Name of the parameter.</param>
+        /// <param name="isMandatory">if set to <c>true</c> [is mandatory].</param>
+        /// <returns></returns>
+        public static string GetParamValue(string[] args, string paramName, bool isMandatory)
+        {
+            string value = string.Empty;
+            var paramSection = args.ToList().Where(x => x.Contains("/" + paramName + "=")).FirstOrDefault();
+            if (null != paramSection)
+            {
+                value = Regex.Split(paramSection, "/" + paramName + "=", RegexOptions.IgnoreCase)[1].Trim();
+            }
+            else
+            {
+                if (isMandatory)
+                {
+                    string response = "Missing argument '" + paramName + "' in Library call .";
+                    Console.WriteLine(response);
+                    throw new Exception(response);
+                }
+            }
+            return value;
+        }
     }
 }
