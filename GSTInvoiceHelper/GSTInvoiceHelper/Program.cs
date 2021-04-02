@@ -159,7 +159,7 @@ namespace GSTInvoiceHelper
 
         private static InvoiceResponse GenerateIRN(string einvoiceToken, GSTInvoice invoiceRequest)
         {
-            Console.WriteLine("Second stage Authentication Token from E-invoice API");
+            Console.WriteLine("Submit invoice and Generate Invoice Registration number from E-invoice API");
             using (var client = new HttpClient())
             {
 
