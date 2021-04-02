@@ -24,15 +24,16 @@ namespace GSTInvoiceHelper
                 using (var client = new HttpClient())
                 {
                     var urlPparams = new List<KeyValuePair<string, string>>();
-                    urlPparams.Add(new KeyValuePair<string, string>("grant_type", "password"));
-                    urlPparams.Add(new KeyValuePair<string, string>("username", "erp1@perennialsys.com"));
-                    urlPparams.Add(new KeyValuePair<string, string>("password", "einv12345"));
-                    urlPparams.Add(new KeyValuePair<string, string>("client_id", "testerpclient"));
+                    urlPparams.Add(new KeyValuePair<string, string>("grant_type", ConfigurationManager.AppSettings["GstVendorAuthGrantType"]));// password"));
+                    urlPparams.Add(new KeyValuePair<string, string>("username", ConfigurationManager.AppSettings["GstVendorAuthUsername"]));// "erp1@perennialsys.com"));
+                    urlPparams.Add(new KeyValuePair<string, string>("password", ConfigurationManager.AppSettings["GstVendorAuthPassword"]));// "einv12345"));
+                    urlPparams.Add(new KeyValuePair<string, string>("client_id", ConfigurationManager.AppSettings["GstVendorAuthClientId"]));// "testerpclient"));
 
-                    var req = new HttpRequestMessage(HttpMethod.Post, "http://35.154.208.8:8080/auth-server/oauth/token") { Content = new FormUrlEncodedContent(urlPparams), };
+                    string url = ConfigurationManager.AppSettings["GstVendorAuthenticateUrl"];// 
+                    var req = new HttpRequestMessage(HttpMethod.Post, url) { Content = new FormUrlEncodedContent(urlPparams), };
 
-                    req.Headers.Add("Authorization", "Basic dGVzdGVycGNsaWVudDpBZG1pbkAxMjM=");
-                    req.Headers.Add("gstin", "29AFQPB8708K000");
+                    req.Headers.Add("Authorization", ConfigurationManager.AppSettings["BasicAuthHeader"]);//Basic dGVzdGVycGNsaWVudDpBZG1pbkAxMjM=");
+                    req.Headers.Add("gstin", ConfigurationManager.AppSettings["GstVendorAuthClientId"]); // "29AFQPB8708K000");
                     //req.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
                     var responseTask = client.SendAsync(req);
                     responseTask.Wait();
