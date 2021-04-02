@@ -46,7 +46,7 @@ namespace GSTInvoiceHelper
                     einvoiceToken = Authenticate(token);
                     Console.WriteLine("Einvoice Token:" + einvoiceToken.access_token.ToString()); 
                 }
-            
+                
 
             }
 
