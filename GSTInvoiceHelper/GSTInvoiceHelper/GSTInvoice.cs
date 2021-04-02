@@ -54,6 +54,12 @@ namespace GSTInvoiceHelper
         [JsonPropertyName("lglNm")]
         public string LglNm { get; set; }
 
+        [JsonPropertyName("addr1")]
+        public string Addr1 { get; set; }
+
+        [JsonPropertyName("addr2")]
+        public string Addr2 { get; set; }
+
         [JsonPropertyName("Bno")]
         public string Bno { get; set; }
 
