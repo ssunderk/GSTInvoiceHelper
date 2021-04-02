@@ -6,3 +6,6 @@
 /GSTInvoiceHelper/.vs/GSTInvoiceHelper/config
 /GSTInvoiceHelper/GSTInvoiceHelper/bin/Debug/netcoreapp3.1
 /GSTInvoiceHelper/GSTInvoiceHelper/obj
+/GSTInvoiceHelper/GSTInvoiceHelper/bin/Release/netcoreapp3.1
+/GSTInvoiceHelper/GSTInvoiceHelper/Properties/PublishProfiles
+/GSTInvoiceHelper/GSTInvoiceHelper/classes.zip

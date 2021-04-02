@@ -1,25 +1,40 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace GSTInvoiceHelper
 {
     class Program
     {
+        static IConfiguration Configuration;
             static void Main(string[] args)
             {
-                string action = GetParamValue(args, "action", true);
+            //string[] args = { "/action=geteinvoicetoken", "/vendortoken=43e6e2c8-6812-4c21-9945-a265583a1648" };
+
+                Configuration = new ConfigurationBuilder()
+              .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+              .AddEnvironmentVariables()
+              .AddCommandLine(args)
+              .Build();
+
+            string action = GetParamValue(args, "action", false);
                 string vendortoken = GetParamValue(args, "vendortoken", false);
                 string einvoicetoken = GetParamValue(args, "einvoicetoken", false);
 
+                if (string.IsNullOrEmpty(action))
+                    action = "getbothtokens";
+
                 Token token = null;
                 Token einvoiceToken = null;
+
                 token = new Token() { access_token = vendortoken };
                 einvoiceToken = new Token() { access_token = einvoicetoken };
+
                 if (action.ToLower().Contains("getgstvendortoken") || action.ToLower().Contains("getbothtokens"))
                 {
                     token = getToken();
@@ -39,19 +54,20 @@ namespace GSTInvoiceHelper
 
             private static Token getToken()
             {
+            Console.WriteLine("Getting Authentication Token from GST Vendor");
                 using (var client = new HttpClient())
                 {
                     var urlPparams = new List<KeyValuePair<string, string>>();
-                    urlPparams.Add(new KeyValuePair<string, string>("grant_type", ConfigurationManager.AppSettings["GstVendorAuthGrantType"]));// password"));
-                    urlPparams.Add(new KeyValuePair<string, string>("username", ConfigurationManager.AppSettings["GstVendorAuthUsername"]));// "erp1@perennialsys.com"));
-                    urlPparams.Add(new KeyValuePair<string, string>("password", ConfigurationManager.AppSettings["GstVendorAuthPassword"]));// "einv12345"));
-                    urlPparams.Add(new KeyValuePair<string, string>("client_id", ConfigurationManager.AppSettings["GstVendorAuthClientId"]));// "testerpclient"));
+                    urlPparams.Add(new KeyValuePair<string, string>("grant_type", Configuration["GstVendorAuthGrantType"]));// password"));
+                    urlPparams.Add(new KeyValuePair<string, string>("username", Configuration["GstVendorAuthUsername"]));// "erp1@perennialsys.com"));
+                    urlPparams.Add(new KeyValuePair<string, string>("password", Configuration["GstVendorAuthPassword"]));// "einv12345"));
+                    urlPparams.Add(new KeyValuePair<string, string>("client_id", Configuration["GstVendorAuthClientId"]));// "testerpclient"));
 
-                    string url = ConfigurationManager.AppSettings["GstVendorAuthenticateUrl"];// 
+                    string url = Configuration["GstVendorAuthenticateUrl"];// 
                     var req = new HttpRequestMessage(HttpMethod.Post, url) { Content = new FormUrlEncodedContent(urlPparams), };
 
-                    req.Headers.Add("Authorization", ConfigurationManager.AppSettings["BasicAuthHeader"]);//Basic dGVzdGVycGNsaWVudDpBZG1pbkAxMjM=");
-                    req.Headers.Add("gstin", ConfigurationManager.AppSettings["GstVendorAuthClientId"]); // "29AFQPB8708K000");
+                    req.Headers.Add("Authorization", Configuration["BasicAuthHeader"]);//Basic dGVzdGVycGNsaWVudDpBZG1pbkAxMjM=");
+                    req.Headers.Add("gstin", Configuration["GstVendorAuthClientId"]); // "29AFQPB8708K000");
                     //req.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
                     var responseTask = client.SendAsync(req);
                     responseTask.Wait();
@@ -81,25 +97,38 @@ namespace GSTInvoiceHelper
 
             private static Token Authenticate(Token token)
             {
-                using (var client = new HttpClient())
+            Console.WriteLine("Second stage Authentication Token from E-invoice API");
+            using (var client = new HttpClient())
                 {
 
                     var authRequest = new AuthRequest()
                     {
-                        action = ConfigurationManager.AppSettings["EinvoiceAuthAction"],// "ACCESSTOKEN",                    
-                        userName = ConfigurationManager.AppSettings["EinvoiceAuthUsername"], //"perennialsystems"
-                        password = ConfigurationManager.AppSettings["EinvoiceAuthPassword"] //"p3r3nn!@1",
+                        action = Configuration["EinvoiceAuthAction"],// "ACCESSTOKEN",                    
+                        username = Configuration["EinvoiceAuthUsername"], //"perennialsystems"
+                        password = Configuration["EinvoiceAuthPassword"] //"p3r3nn!@1",
                     };
 
-                    string einvoicAuthUrl = ConfigurationManager.AppSettings["EinvoiceAuthenticateUrl"];
+                    string einvoicAuthUrl = Configuration["EinvoiceAuthenticateUrl"];
                     var req = new HttpRequestMessage(HttpMethod.Post, einvoicAuthUrl);// "https://35.154.208.8/einvoice/v1.03/authentication");
 
-                    req.Content = new StringContent(JsonConvert.SerializeObject(authRequest));
+                    req.Content = new StringContent(JsonConvert.SerializeObject(authRequest), Encoding.UTF8, "application/json");
+                
+                //req.Headers.Add("Content-Type", "application/json");
+                //Console.WriteLine("Header: Content-Type: application/json");
+                req.Headers.Add("Accept", "application/json");
+                Console.WriteLine("Header: Accept: application/json");
+                req.Headers.Add("Authorization", "Bearer " + token.access_token);
+                Console.WriteLine("Header: Authorization: " + "Bearer " + token.access_token);
+                    req.Headers.Add("gstin", Configuration["GSTIN"]); // "29AFQPB8708K000");
+                Console.WriteLine("Header: gstin: " + Configuration["GSTIN"]);
+                req.Headers.Add("action", Configuration["EinvoiceAuthAction"]);// ACCESSTOKEN");
+                Console.WriteLine("Header: action: " + Configuration["EinvoiceAuthAction"]);
+                req.Headers.Add("X-Connector-Auth-Token", Configuration["EinvoiceXConnectorToken"]);// ACCESSTOKEN");
+                Console.WriteLine("Header: X-Connector-Auth-Token: " + Configuration["EinvoiceXConnectorToken"]);
 
-                    req.Headers.Add("Authorization", "Bearer " + token.access_token);
-                    req.Headers.Add("gstin", ConfigurationManager.AppSettings["GSTIN"]); // "29AFQPB8708K000");
-                    req.Headers.Add("action", ConfigurationManager.AppSettings["EinvoiceAuthAction"]);// ACCESSTOKEN");
-                    var responseTask = client.SendAsync(req);
+                Console.WriteLine("Body:" + JsonConvert.SerializeObject(authRequest));
+
+                var responseTask = client.SendAsync(req);
                     responseTask.Wait();
                     var result = responseTask.Result;
 
@@ -120,11 +149,67 @@ namespace GSTInvoiceHelper
                     }
                     else
                     {
+                        Console.WriteLine("Result:"+result);
                         throw new Exception("not working");
                     }
                 }
 
             }
+
+
+        private static InvoiceResponse GenerateIRN(string einvoiceToken, GSTInvoice invoiceRequest)
+        {
+            Console.WriteLine("Second stage Authentication Token from E-invoice API");
+            using (var client = new HttpClient())
+            {
+
+                string einvoicIrnUrl = Configuration["EinvoiceIrnUrl"];
+                var req = new HttpRequestMessage(HttpMethod.Post, einvoicIrnUrl);// "https://35.154.208.8/einvoice/v1.03/invoice");
+
+                req.Content = new StringContent(JsonConvert.SerializeObject(invoiceRequest), Encoding.UTF8, "application/json");
+
+                //req.Headers.Add("Content-Type", "application/json");
+                //Console.WriteLine("Header: Content-Type: application/json");
+                req.Headers.Add("Accept", "application/json");
+                Console.WriteLine("Header: Accept: application/json");
+                req.Headers.Add("Authorization", "Bearer " + einvoiceToken);
+                Console.WriteLine("Header: Authorization: " + "Bearer " + einvoiceToken);
+                req.Headers.Add("gstin", Configuration["GSTIN"]); // "29AFQPB8708K000");
+                Console.WriteLine("Header: gstin: " + Configuration["GSTIN"]);
+                req.Headers.Add("action", Configuration["EinvoiceAuthAction"]);// ACCESSTOKEN");
+                Console.WriteLine("Header: action: " + Configuration["EinvoiceAuthAction"]);
+                req.Headers.Add("X-Connector-Auth-Token", Configuration["EinvoiceXConnectorToken"]);// ACCESSTOKEN");
+                Console.WriteLine("Header: X-Connector-Auth-Token: " + Configuration["EinvoiceXConnectorToken"]);
+
+                Console.WriteLine("Request Body:" + JsonConvert.SerializeObject(invoiceRequest));
+
+                var responseTask = client.SendAsync(req);
+                responseTask.Wait();
+                var result = responseTask.Result;
+
+
+                if (result.IsSuccessStatusCode)
+                {
+
+                    var readTask = result.Content.ReadAsStringAsync();
+                    readTask.Wait();
+
+                    var strResult = readTask.Result;
+
+                    var invoiceResponse = JsonConvert.DeserializeObject<InvoiceResponse>(strResult);
+                    Console.WriteLine(strResult);
+
+                    return invoiceResponse;
+
+                }
+                else
+                {
+                    Console.WriteLine("Result:" + result);
+                    throw new Exception("not working");
+                }
+            }
+
+        }
 
         /// Gets the parameter value.
         /// </summary>
