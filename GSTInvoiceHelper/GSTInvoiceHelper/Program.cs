@@ -15,12 +15,13 @@ namespace GSTInvoiceHelper
             static void Main(string[] args)
             {
             //string[] args = { "/action=geteinvoicetoken", "/vendortoken=43e6e2c8-6812-4c21-9945-a265583a1648" };
-
                 Configuration = new ConfigurationBuilder()
               .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
               .AddEnvironmentVariables()
               .AddCommandLine(args)
               .Build();
+
+            GSTInvoice invoiceRequest = JsonConvert.DeserializeObject<GSTInvoice>(System.IO.File.ReadAllText(System.IO.Path.Combine(AppContext.BaseDirectory, "sampleinvoice.json")));
 
             string action = GetParamValue(args, "action", false);
                 string vendortoken = GetParamValue(args, "vendortoken", false);
@@ -39,21 +40,28 @@ namespace GSTInvoiceHelper
                 {
                     token = getToken();
                     Console.WriteLine("Token:" + token.ToString());
+                    Console.WriteLine("Successfully generated GstVendor Token");
                 }
 
                 if (action.ToLower().Contains("geteinvoicetoken") || action.ToLower().Contains("getbothtokens"))
                 {
                     einvoiceToken = Authenticate(token);
-                    Console.WriteLine("Einvoice Token:" + einvoiceToken.access_token.ToString()); 
-                }
-                
-
+                    Console.WriteLine("Einvoice Token:" + einvoiceToken.access_token.ToString());
+                    Console.WriteLine("Successfully generated Einvoice Token");
             }
+
+            if (action.ToLower().Contains("generateirn") )
+            {
+                InvoiceResponse res = GenerateIRN(einvoicetoken,invoiceRequest);                
+            }
+
+        }
 
 
 
             private static Token getToken()
             {
+            Console.WriteLine("---------------------------------------------------");
             Console.WriteLine("Getting Authentication Token from GST Vendor");
                 using (var client = new HttpClient())
                 {
@@ -97,6 +105,7 @@ namespace GSTInvoiceHelper
 
             private static Token Authenticate(Token token)
             {
+            Console.WriteLine("---------------------------------------------------");
             Console.WriteLine("Second stage Authentication Token from E-invoice API");
             using (var client = new HttpClient())
                 {
@@ -126,7 +135,7 @@ namespace GSTInvoiceHelper
                 req.Headers.Add("X-Connector-Auth-Token", Configuration["EinvoiceXConnectorToken"]);// ACCESSTOKEN");
                 Console.WriteLine("Header: X-Connector-Auth-Token: " + Configuration["EinvoiceXConnectorToken"]);
 
-                Console.WriteLine("Body:" + JsonConvert.SerializeObject(authRequest));
+                //Console.WriteLine("Body:" + JsonConvert.SerializeObject(authRequest));
 
                 var responseTask = client.SendAsync(req);
                     responseTask.Wait();
@@ -159,6 +168,7 @@ namespace GSTInvoiceHelper
 
         private static InvoiceResponse GenerateIRN(string einvoiceToken, GSTInvoice invoiceRequest)
         {
+            Console.WriteLine("---------------------------------------------------");
             Console.WriteLine("Submit invoice and Generate Invoice Registration number from E-invoice API");
             using (var client = new HttpClient())
             {
