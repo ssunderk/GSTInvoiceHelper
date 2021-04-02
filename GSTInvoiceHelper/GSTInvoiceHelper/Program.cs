@@ -176,10 +176,10 @@ namespace GSTInvoiceHelper
                 Console.WriteLine("Header: Authorization: " + "Bearer " + einvoiceToken);
                 req.Headers.Add("gstin", Configuration["GSTIN"]); // "29AFQPB8708K000");
                 Console.WriteLine("Header: gstin: " + Configuration["GSTIN"]);
-                req.Headers.Add("action", Configuration["EinvoiceAuthAction"]);// ACCESSTOKEN");
-                Console.WriteLine("Header: action: " + Configuration["EinvoiceAuthAction"]);
-                req.Headers.Add("X-Connector-Auth-Token", Configuration["EinvoiceXConnectorToken"]);// ACCESSTOKEN");
-                Console.WriteLine("Header: X-Connector-Auth-Token: " + Configuration["EinvoiceXConnectorToken"]);
+                req.Headers.Add("action", Configuration["EinvoiceGenerateAction"]);// GENERATEIRN");
+                Console.WriteLine("Header: action: " + Configuration["EinvoiceGenerateAction"]);
+                req.Headers.Add("X-Connector-Auth-Token", Configuration["EinvoiceXConnectorTokenForGenerate"]);// l7xxba7aa16e968646b992298b377e955e7c:20180519134451:29AFQPB8708K000");
+                Console.WriteLine("Header: X-Connector-Auth-Token: " + Configuration["EinvoiceXConnectorTokenForGenerate"]);
 
                 Console.WriteLine("Request Body:" + JsonConvert.SerializeObject(invoiceRequest));
 
